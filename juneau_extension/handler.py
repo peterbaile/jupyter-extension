@@ -1,5 +1,6 @@
 from notebook.utils import url_path_join
 from notebook.base.handlers import IPythonHandler
+import json
 
 
 class JuneauHandler2(IPythonHandler):
@@ -8,8 +9,8 @@ class JuneauHandler2(IPythonHandler):
 
     def put(self):
         print(self.request.arguments)
-        print(self.request.body)
-        self.write('Hello, world!')
+        self.write({'message': 'Hello, world!'})
+        self.finish()
 
 
 def load_jupyter_server_extension(nb_server_app):

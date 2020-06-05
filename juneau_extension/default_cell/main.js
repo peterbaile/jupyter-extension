@@ -10,8 +10,13 @@ define([
     utils
 ) {
 
+    const getCookie = (name) => {
+        const r = document.cookie.match("\\b" + name + "=([^;]*)\\b");
+        return r ? r[1] : undefined;
+    };
+
     // Add a cell above current cell (will be top if no cells)
-    let add_cell = () => {
+    const add_cell = () => {
         Jupyter.notebook.insert_cell_above('code').// Define default cell here
         set_text(`# Standard data science libraries
 import pandas as pd
@@ -31,19 +36,17 @@ InteractiveShell.ast_node_interactivity = 'all'
 
         const send_url = utils.url_path_join(Jupyter.notebook.base_url, '/juneau-2');
 
-        const data_json = {'var': 'df'};
-
-        console.log("hello");
-        alert("hello");
+        const data_json = {'var': 'df', "_xsrf": getCookie("_xsrf")};
 
         $.ajax({
             url: send_url,
-            type: 'PUT',
+            method: 'PUT',
             data: data_json,
             dataType: 'json',
             timeout: 10000000,
-            success: function (response) {
+            success: function(response) {
                 alert("Success!");
+                console.log("success! juneau-2")
                 // return_state = response['state'];
                 // return_data = response['res'];
                 // if (return_state === 'true') {
