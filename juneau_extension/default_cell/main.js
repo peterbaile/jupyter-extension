@@ -1,9 +1,14 @@
 define([
     'base/js/namespace',
-    'base/js/events'
+    'base/js/events',
+    'jquery',
+    'base/js/utils'
 ], function (
     Jupyter,
-    events) {
+    events,
+    $,
+    utils
+) {
 
     // Add a cell above current cell (will be top if no cells)
     let add_cell = () => {
@@ -23,8 +28,35 @@ pd.options.display.max_columns = 20
 from IPython.core.interactiveshell import InteractiveShell
 InteractiveShell.ast_node_interactivity = 'all'
         `);
-        Jupyter.notebook.select_prev();
-        Jupyter.notebook.execute_cell_and_select_below();
+
+        const send_url = utils.url_path_join(Jupyter.notebook.base_url, '/juneau-2');
+
+        const data_json = {'var': 'df'};
+
+        console.log("hello");
+        alert("hello");
+
+        $.ajax({
+            url: send_url,
+            type: 'PUT',
+            data: data_json,
+            dataType: 'json',
+            timeout: 10000000,
+            success: function (response) {
+                alert("Success!");
+                // return_state = response['state'];
+                // return_data = response['res'];
+                // if (return_state === 'true') {
+                //     var print_string = return_data.toString();
+                // } else {
+                //     alert("Error indexing table!");
+                // }
+            },
+            error: function (request, error) {
+                // console.log(arguments);
+                alert("Can't index table because: " + error);
+            }
+        });
     };
 
     // Button to add default cell
@@ -39,13 +71,13 @@ InteractiveShell.ast_node_interactivity = 'all'
     };
 
     // Run on start
-    function load_ipython_extension() {
+    let load_ipython_extension = () => {
         // Add a default cell if there are no cells
         if (Jupyter.notebook.get_cells().length === 1) {
             add_cell();
         }
         defaultCellButton();
-    }
+    };
 
     return {
         load_ipython_extension: load_ipython_extension
