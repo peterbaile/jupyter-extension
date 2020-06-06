@@ -17,26 +17,18 @@ define([
 
     // Add a cell above current cell (will be top if no cells)
     const add_cell = () => {
-        Jupyter.notebook.insert_cell_above('code').// Define default cell here
-        set_text(`# Standard data science libraries
-import pandas as pd
-import numpy as np
-from scipy import stats
-import featuretools as ft
-# Visualization
-import matplotlib.pyplot as plt
-import seaborn as sns
-plt.style.use('bmh')
-# Options for pandas
-pd.options.display.max_columns = 20
-# Display all cell outputs
-from IPython.core.interactiveshell import InteractiveShell
-InteractiveShell.ast_node_interactivity = 'all'
-        `);
+        // Define default cell here
+        Jupyter.notebook.insert_cell_above('code');
+
+        const kernel_id = String(Jupyter.notebook.kernel.id);
 
         const send_url = utils.url_path_join(Jupyter.notebook.base_url, '/juneau-2');
 
-        const data_json = {'var': 'df', "_xsrf": getCookie("_xsrf")};
+        const data_json = {
+            'var': 'df',
+            '_xsrf': getCookie("_xsrf"),
+            'kernel_id': kernel_id
+        };
 
         $.ajax({
             url: send_url,
@@ -44,9 +36,9 @@ InteractiveShell.ast_node_interactivity = 'all'
             data: data_json,
             dataType: 'json',
             timeout: 10000000,
-            success: function(response) {
-                alert("Success!");
-                console.log("success! juneau-2")
+            success: function (response) {
+                console.log("success! juneau-2");
+                alert("success");
                 // return_state = response['state'];
                 // return_data = response['res'];
                 // if (return_state === 'true') {
