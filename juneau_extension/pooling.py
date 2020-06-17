@@ -1,16 +1,28 @@
+import json
 import asyncio
 import concurrent.futures
 
 
-def instance(pid):
+def get_status(pid):
     while True:
-        if pid % 2 == 0:
-            print("this is an even number")
-        else:
-            print("hi!")
+        with open("data_file.json", "r") as file:
+            try:
+                data = json.load(file)
+                if data.get(str(pid)):
+                    print(f'process {pid}: {data[str(pid)]}')
+
+                if data.get(str(pid)) == "done":
+                    break
+
+            except Exception as e:
+                continue
 
 
-async def index():
+def instance(pid):
+    get_status(pid)
+
+
+async def main():
     with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         loop = asyncio.get_event_loop()
         # futures = [
@@ -20,10 +32,11 @@ async def index():
         # ]
         # for response in await asyncio.gather(*futures):
         #     pass
-        for i in range(5):
+        for i in range(10):
             loop.run_in_executor(executor, instance, i)
 
 
 event_loop = asyncio.get_event_loop()
-event_loop.run_until_complete(index())
+event_loop.run_until_complete(main())
 event_loop.close()
+

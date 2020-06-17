@@ -1,16 +1,20 @@
 import asyncio
 import concurrent.futures
+import time
+
+from juneau_extension.test_json import update_exec_status
 
 
 def instance(pid):
-    while True:
-        if pid % 2 == 0:
-            print("this is an even number")
-        else:
-            print("hi!")
+    if pid % 2 == 0:
+        print(update_exec_status("done", pid))
+    else:
+        print(update_exec_status("operating", pid))
+        time.sleep(3)
+        print(update_exec_status("done", pid))
 
 
-async def index():
+async def main():
     with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
         loop = asyncio.get_event_loop()
         # futures = [
@@ -20,10 +24,10 @@ async def index():
         # ]
         # for response in await asyncio.gather(*futures):
         #     pass
-        for i in range(5):
+        for i in range(10):
             loop.run_in_executor(executor, instance, i)
 
-
+time.sleep(2)
 event_loop = asyncio.get_event_loop()
-event_loop.run_until_complete(index())
+event_loop.run_until_complete(main())
 event_loop.close()
