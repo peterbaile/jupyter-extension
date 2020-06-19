@@ -8,7 +8,7 @@
 - `jupyter nbextension enable default_cell/main --user`
 
 ### Improvements
-|                    | Previous                                                             | Current                                                                                   |
-|--------------------|----------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
-| Jaccard Similarity | load the tables from Postgres to Python and compare it col by col    | using SQL query directly                                                                  |
-| Indexing Table     | use a file lock to make each request run in a sequential order       | store execution status in a JSON file, allowing table indexing to be performed in parallel|
+|                    | Previous                                                             | Current                                                                                   
+|--------------------|----------------------------------------------------------------------|-------------------------------------------------------------------------------------------
+| Jaccard Similarity | load the tables from Postgres to Python and compare it col by col    | using SQL query directly [code](https://github.com/peterbaile/jupyter-extension/blob/master/juneau_extension/jaccard.py)
+| Indexing Table     | use a file lock to make each request run in a sequential order       | store execution status in a JSON file, allowing table indexing to be performed in parallel
