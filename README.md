@@ -7,7 +7,8 @@
 - `jupyter nbextension install default_cell/ --user`
 - `jupyter nbextension enable default_cell/main --user`
 
-### Invoke the Jupyter Server Extension
-- `sh api.sh`
-- GET request: `curl http://localhost:8888/juneau-2`
-- Concurrent `GET` requests: `curl http://localhost:8888/juneau-2 & curl http://localhost:8888/juneau-2`
+### Improvements
+|                    | Previous                                                             | Current                                                                                   |
+|--------------------|----------------------------------------------------------------------|-------------------------------------------------------------------------------------------|
+| Jaccard Similarity | load the tables from Postgres to Python and compare it col by col    | using SQL query directly                                                                  |
+| Indexing Table     | use a file lock to make each request run in a sequential order       | store execution status in a JSON file, allowing table indexing to be performed in parallel|

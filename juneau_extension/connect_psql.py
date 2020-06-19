@@ -39,7 +39,8 @@ import json
 
 if type(var) is pd.DataFrame or type(var) is np.ndarray or type(var) is list:
     df_json_string = var.to_json(orient='split', index=False)
-    df_json = json.loads(df_json_string)['data']
+    df_ls = json.loads(df_json_string)['data']
+    df_ls_copy = copy.deepcopy(df_ls)
     """
 
     # Step 2: define the functions used to write to the JSON file
@@ -115,22 +116,14 @@ table_string = f"{sql_schema_name}.{sql_table_name}"
 engine = create_engine(conn_string)
 with engine.connect() as connection:
     insertion_string = f'CREATE TABLE {sql_schema_name}.{var_name} ("A" int, "B" int, "C" int, "D" int);'
-    for ls in df_json:
+    for ls in df_ls_copy:
         insertion_string += f"INSERT INTO {sql_schema_name}.{var_name} VALUES ({ls[0]}, {ls[1]}, {ls[2]}, {ls[3]});"
 
     connection.execute(insertion_string)
     update_exec_status("done", proc_id)
     """
 
-    insert_fake_code = """
-insertion_string = f'CREATE TABLE {sql_schema_name}.{var_name} ("A" int, "B" int, "C" int, "D" int);'
-for ls in df_json:
-    insertion_string += f"INSERT INTO {sql_schema_name}.{var_name} VALUES ({ls[0]}, {ls[1]}, {ls[2]}, {ls[3]});"
-update_exec_status("done", proc_id)
-"""
-
     code = load_input_code + request_var_code + json_lock_code + insert_code
-    # code = load_input_code + request_var_code + json_lock_code + insert_fake_code
 
     km.execute(code, store_history=False)
     # km.stop_channels()
