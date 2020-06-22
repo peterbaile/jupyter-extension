@@ -1,33 +1,46 @@
 import asyncio
-import concurrent.futures
-import time
-
-from juneau_extension.test_json import update_exec_status
+from juneau_extension.jupyter import exec_ipython_asyncio
 
 
-def instance(pid):
-    if pid % 2 == 0:
-        print(update_exec_status("done", pid))
-    else:
-        print(update_exec_status("operating", pid))
-        time.sleep(3)
-        print(update_exec_status("done", pid))
+# Adapted from https://docs.python.org/3/library/asyncio-queue.html#examples
+async def worker(name, queue):
+    while True:
+        # Step 1: Get a "work item" out of the queue
+        proc_info = await queue.get()
+        kid = proc_info.get('kid')
+        var_name = proc_info.get('var_name')
+
+        # Step 2: do the task
+        output, error = await exec_ipython_asyncio(kid, var_name, 'connect_psql')
+
+        if output:
+            print(f'[stdout]\n{output.decode()}')
+        if error:
+            print(f'[stderr]\n{error.decode()}')
+
+        # Step 3: Notify the queue that the "work item" has been processed.
+        queue.task_done()
+
+        print(f'{name} has indexed {var_name}')
 
 
 async def main():
-    with concurrent.futures.ThreadPoolExecutor(max_workers=100) as executor:
-        loop = asyncio.get_event_loop()
-        # futures = [
-        #     loop.run_in_executor(executor, instance, '1'),
-        #     loop.run_in_executor(executor, instance, '2')
-        #     # loop.run_in_executor(executor, request, '3')
-        # ]
-        # for response in await asyncio.gather(*futures):
-        #     pass
-        for i in range(10):
-            loop.run_in_executor(executor, instance, i)
+    queue = asyncio.Queue()
 
-time.sleep(2)
-event_loop = asyncio.get_event_loop()
-event_loop.run_until_complete(main())
-event_loop.close()
+    for i in range(5):
+        queue.put_nowait({'kid': '169ee0d2-3046-4af9-8064-c8fe0be28b52', 'var_name': f'df{i}'})
+
+    tasks = []
+
+    for i in range(queue.qsize()):
+        task = asyncio.create_task(worker(f'worker-{i}', queue))
+        tasks.append(task)
+
+    await queue.join()
+
+    for task in tasks:
+        task.cancel()
+
+    await asyncio.gather(*tasks, return_exceptions=True)
+
+asyncio.run(main())

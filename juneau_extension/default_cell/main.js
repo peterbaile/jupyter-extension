@@ -98,6 +98,7 @@ define([
         if (Jupyter.notebook.get_cells().length === 1) {
             add_cell();
         }
+        console.log(String(Jupyter.notebook.kernel.id));
         defaultCellButton();
     };
 

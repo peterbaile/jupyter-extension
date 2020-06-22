@@ -6,6 +6,7 @@ import sys
 import site
 import subprocess
 import json
+import asyncio
 
 import juneau_extension.config as cfg
 from juneau_extension.file_lock import FileLock
@@ -15,12 +16,30 @@ jupyter_lock = FileLock('my.lock')
 TIMEOUT = 6
 
 
+# AsyncIO subprocess: adapted from https://docs.python.org/3/library/asyncio-subprocess.html#subprocesses
+async def exec_ipython_asyncio(kernel_id, search_var, py_file):
+    pid = f'process {search_var}'
+    file_name = "/Users/peterchan/Desktop/GitHub/jupyter-extension/juneau_extension/connect_psql.py"
+
+    proc = await asyncio.create_subprocess_exec('python3', file_name, kernel_id, search_var, pid, stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+
+    stdout, stderr = await proc.communicate()
+
+    # if stdout:
+    #     print(f'[stdout]\n{stdout.decode()}')
+    # if stderr:
+    #     print(f'[stderr]\n{stderr.decode()}')
+
+    return stdout, stderr
+
+
 # Execute via IPython kernel in the PARALLEL way
-def exec_ipython(kernel_id, search_var, py_file):
+async def exec_ipython(kernel_id, search_var, py_file):
     pid = f'process {search_var}'
 
     logging.debug('Exec ' + py_file)
-    file_name = site.getsitepackages()[0] + '/juneau_extension/' + py_file + '.py'
+    file_name = "/Users/peterchan/Desktop/GitHub/jupyter-extension/juneau_extension/connect_psql.py"
+    # file_name = site.getsitepackages()[0] + '/juneau_extension/' + py_file + '.py'
     try:
         if sys.version_info[0] >= 3:
             subprocess.Popen(['python3', file_name, \
@@ -49,47 +68,49 @@ def exec_ipython(kernel_id, search_var, py_file):
             except Exception as e:
                 continue
 
-# Execute via IPython kernel
-def exec_ipython(kernel_id, search_var, py_file):
-    global jupyter_lock
-
-    jupyter_lock.acquire()
-
-    # set pid to 1 for test purpose
-    pid = f'process {search_var}'
-
-    try:
-        logging.info('Exec ' + py_file)
-        file_name = site.getsitepackages()[0] + '/juneau_extension/' + py_file + '.py'
-        try:
-            if sys.version_info[0] >= 3:
-                proc = subprocess.Popen(['python3', file_name, \
-                                           kernel_id, search_var, pid], \
-                                          stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-            else:
-                proc = subprocess.Popen(['python', file_name, \
-                                           kernel_id, search_var, pid], \
-                                          stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-        except FileNotFoundError:
-            proc = subprocess.Popen(['python', file_name, \
-                                       kernel_id, search_var, pid], \
-                                      stderr=subprocess.PIPE, stdout=subprocess.PIPE)
-
-        output, error = proc.communicate()
-    finally:
-        jupyter_lock.release()
-
-    if sys.version[0] == '3':
-        output = output.decode("utf-8")
-        error = error.decode("utf-8")
-    output = output.strip('\n')
-
-    proc.stdout.close()
-    proc.stderr.close()
-
-    logging.debug(output)
-
-    return output, error
+# # Execute via IPython kernel
+# async def exec_ipython(kernel_id, search_var, py_file):
+#     global jupyter_lock
+#
+#     jupyter_lock.acquire()
+#
+#     # set pid to 1 for test purpose
+#     pid = f'process {search_var}'
+#
+#     try:
+#         logging.info('Exec ' + py_file)
+#         file_name = "/Users/peterchan/Desktop/GitHub/jupyter-extension/juneau_extension/connect_psql.py"
+#         # file_name = site.getsitepackages()[0] + '/juneau_extension/' + py_file + '.py'
+#         try:
+#             if sys.version_info[0] >= 3:
+#                 proc = subprocess.Popen(['python3', file_name, \
+#                                            kernel_id, search_var, pid], \
+#                                           stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+#             else:
+#                 proc = subprocess.Popen(['python', file_name, \
+#                                            kernel_id, search_var, pid], \
+#                                           stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+#         except FileNotFoundError:
+#             proc = subprocess.Popen(['python', file_name, \
+#                                        kernel_id, search_var, pid], \
+#                                       stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+#
+#         output, error = proc.communicate()
+#     finally:
+#         jupyter_lock.release()
+#
+#     if sys.version[0] == '3':
+#         output = output.decode("utf-8")
+#         error = error.decode("utf-8")
+#     output = output.strip('\n')
+#
+#     proc.stdout.close()
+#     proc.stderr.close()
+#
+#     logging.debug(output)
+#     logging.debug(error)
+#
+#     return output, error
 
 
 def exec_code(kid, var, code):

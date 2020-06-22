@@ -12,7 +12,7 @@ TIMEOUT = 60
 def main(kid, var, pid):
     # load connection info and init communication
     cf = find_connection_file(kid)  # str(port))
-    km = KernelClient(connection_file=cf)
+    km = BlockingKernelClient(connection_file=cf)
     km.load_connection_file()
     km.start_channels()
 
@@ -36,6 +36,7 @@ json_file_name = "/Users/peterchan/Desktop/GitHub/jupyter-extension/juneau_exten
 import numpy as np
 import pandas as pd
 import json
+import copy
 
 if type(var) is pd.DataFrame or type(var) is np.ndarray or type(var) is list:
     df_json_string = var.to_json(orient='split', index=False)
@@ -120,13 +121,18 @@ with engine.connect() as connection:
         insertion_string += f"INSERT INTO {sql_schema_name}.{var_name} VALUES ({ls[0]}, {ls[1]}, {ls[2]}, {ls[3]});"
 
     connection.execute(insertion_string)
+    print(proc_id)
     update_exec_status("done", proc_id)
+    
+    rows = connection.execute(f"select * from {sql_schema_name}.{var_name} limit 5;")
+    for row in rows:
+        print(row)
     """
 
     code = load_input_code + request_var_code + json_lock_code + insert_code
 
-    km.execute(code, store_history=False)
-    # km.stop_channels()
+    km.execute_interactive(code, timeout=TIMEOUT)
+    km.stop_channels()
 
 
 if __name__ == "__main__":
