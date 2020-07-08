@@ -10,13 +10,15 @@ async def worker(name, queue):
         kid = proc_info.get('kid')
         var_name = proc_info.get('var_name')
 
+        print(f'{name} starts to index {var_name}')
+
         # Step 2: do the task
         output, error = await exec_ipython_asyncio(kid, var_name, 'connect_psql')
 
         if output:
             print(f'[stdout]\n{output.decode()}')
-        if error:
-            print(f'[stderr]\n{error.decode()}')
+        # if error:
+        #     print(f'[stderr]\n{error.decode()}')
 
         # Step 3: Notify the queue that the "work item" has been processed.
         queue.task_done()
