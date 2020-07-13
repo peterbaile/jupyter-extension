@@ -9,6 +9,7 @@
 ![hash_table](./hash_table.png)
 
 **Query**
+
 There are two parts to perform a query: 1) find the optimal `k` (the number of hash functions) and `l` (the number of bands) 2) use the params calculated to loop through each band/ bucket and find signatures that have the same **hashKey** and collect their `key` (each `key` is the unique ID of a domain).
 1. the calculation of optimal `k` and `l` is already done in `lshforst.c` and `probability.c`
 2. still need to finish the second part...
