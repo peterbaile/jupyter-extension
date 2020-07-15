@@ -2,5 +2,4 @@
  * probability.h
  */
 
-double probFalseNegative(int x, int q, int l, int k, double t, double precision);
-double probFalsePositive(int x, int q, int l, int k, double t, double precision);
+void optimalKL(long k, long l, long x, long q, double t, long *optK, long *optL);

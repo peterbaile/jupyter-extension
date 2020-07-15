@@ -1,19 +1,20 @@
 #include <stdio.h>
 #include <math.h>
+#include <float.h>
 
-double falsePositive(int x, int q, int l, int k, double t)
+long double falsePositive(long x, long q, long l, long k, double t)
 {
-  return 1.0 - pow(1.0 - pow(t / (1.0 + (double)x / (double)q - t), (double)k), (double)l);
+  return 1.0 - pow(1.0 - pow(t / (1.0 + (long double)x / (long double)q - t), (long double)k), (long double)l);
 }
 
-double falseNegative(int x, int q, int l, int k, double t)
+long double falseNegative(long x, long q, long l, long k, double t)
 {
-  return 1.0 - (1.0 - pow(1.0 - pow(t / (1.0 + (double)x / (double)q - t), (double)k), (double)l));
+  return 1.0 - (1.0 - pow(1.0 - pow(t / (1.0 + (long double)x / (long double)q - t), (long double)k), (long double)l));
 }
 
-double integralFP(int x, int q, int l, int k, double a, double b, double precision)
+long double integralFP(long x, long q, long l, long k, double a, double b, double precision)
 {
-  double area;
+  long double area = 0.0;
 
   for (double i = a; i < b; i += precision)
   {
@@ -23,9 +24,9 @@ double integralFP(int x, int q, int l, int k, double a, double b, double precisi
   return area;
 }
 
-double integralFN(int x, int q, int l, int k, double a, double b, double precision)
+long double integralFN(long x, long q, long l, long k, double a, double b, double precision)
 {
-  double area;
+  long double area = 0.0;
 
   for (double i = a; i < b; i += precision)
   {
@@ -35,9 +36,9 @@ double integralFN(int x, int q, int l, int k, double a, double b, double precisi
   return area;
 }
 
-double probFalseNegative(int x, int q, int l, int k, double t, double precision)
+long double probFalseNegative(long x, long q, long l, long k, double t, double precision)
 {
-  double xq = (double)x / (double)q;
+  long double xq = (long double)x / (long double)q;
 
   if (xq >= 1.0)
   {
@@ -54,9 +55,9 @@ double probFalseNegative(int x, int q, int l, int k, double t, double precision)
   }
 }
 
-double probFalsePositive(int x, int q, int l, int k, double t, double precision)
+long double probFalsePositive(long x, long q, long l, long k, double t, double precision)
 {
-  double xq = (double)x / (double)q;
+  long double xq = (long double)x / (long double)q;
 
   if (xq >= 1.0 || xq >= t)
   {
@@ -68,9 +69,54 @@ double probFalsePositive(int x, int q, int l, int k, double t, double precision)
   }
 }
 
-int main()
-{
-  double precision = 0.01;
-  printf("%f\n", probFalsePositive(4, 1, 3, 2, 0.9, precision));
-  printf("%f\n", probFalseNegative(4, 1, 3, 2, 0.9, precision));
+// k is the number of hash functions in each band
+// l is the number of bands
+// x is the domain size
+// q is the query size
+// t is the threshold value
+// optK and optL are the pointers to store the optimal k and l values
+void optimalKL(long k, long l, long x, long q, double t, long *optK, long *optL) {
+  long double minError = DBL_MAX;
+  double integrationPrecision = 0.01;
+
+  for (long i = 1; i <= l; i++) {
+    for (long j = 1; j <= k; j++) {
+      long double currFp = probFalsePositive(x, q, i, j, t, integrationPrecision);
+      long double currFn = probFalseNegative(x, q, i, j, t, integrationPrecision);
+      long double currErr = currFp + currFn;
+
+      if (minError > currErr) {
+        // printf("%Lf\n", currErr);
+        // printf("k value is %d ", i);
+        // printf("j value is %d\n", j);
+        minError = currErr;
+        *optK = i;
+        *optL = j;
+      }
+    }
+  }
 }
+
+// int main()
+// {
+//   double precision = 0.01;
+//   printf("%f\n", probFalsePositive(4, 4, 1, 1, 0.9, precision));
+//   printf("%f\n", probFalseNegative(4, 4, 1, 1, 0.9, precision));
+// }
+
+// int main() {
+//   long k = 5;
+//   long l = 32;
+//   long x = 1000000000000;
+//   long q = 10000000;
+//   double t = 0.6;
+
+//   long optK = -1, optL = -1;
+
+//   optimalKL(k, l, x, q, t, &optK, &optL);
+
+//   printf("%ld\n", optK);
+//   printf("%ld\n", optL);
+
+//   return 0;
+// }

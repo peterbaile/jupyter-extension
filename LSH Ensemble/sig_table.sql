@@ -59,6 +59,7 @@ $$ LANGUAGE plpgsql;
 
 -- select min_hash_array('{12335, 212390, 38897123, 412309, 512397}');
 
-select * from public.sig_table t0;
--- select insertHash(4, 32);
+-- select * from public.sig_table t0;
+delete from public.hash_table;
+select insertHash(4, 32);
 -- select (t0."A"->>'sig')::bigint[] from public.sig_table t0;

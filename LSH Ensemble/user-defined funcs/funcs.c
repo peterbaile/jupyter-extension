@@ -6,6 +6,7 @@
 #include "utils/lsyscache.h"
 #include "util_funcs.h"
 #include "minhash.h"
+#include "probability.h"
 
 PG_MODULE_MAGIC;
 
@@ -108,6 +109,7 @@ min_hash_array_new(PG_FUNCTION_ARGS)
 
     int hashValueSize = 4;
 
+    // valsLength = k (#hash functions in each band)
     int hs_length = hashValueSize * valsLength;
 
     hs = palloc(sizeof(Datum) * hs_length);
@@ -127,6 +129,39 @@ min_hash_array_new(PG_FUNCTION_ARGS)
     ArrayType* result_array;
 
     result_array = construct_array(hs, hs_length, valsType, valsTypeWidth, valsTypeByValue, valsTypeAlignmentCode);
+
+    PG_RETURN_ARRAYTYPE_P(result_array);
+}
+
+PG_FUNCTION_INFO_V1(computeOptimalKL);
+Datum computeOptimalKL(PG_FUNCTION_ARGS)
+{
+    long k = PG_GETARG_UINT32(0);
+    long l = PG_GETARG_UINT32(1);
+    long x = PG_GETARG_UINT32(2);
+    long q = PG_GETARG_UINT32(3);
+    double t = PG_GETARG_FLOAT8(4);
+
+    long optK = -1, optL = -1;
+
+    optimalKL(k, l, x, q, t, &optK, &optL);
+
+    // Oid intType = PG_GETARG_OID(0);
+    int16 valsTypeWidth;
+    bool valsTypeByValue;
+    char valsTypeAlignmentCode;
+    get_typlenbyvalalign(20, &valsTypeWidth, &valsTypeByValue, &valsTypeAlignmentCode);
+
+    // array to hold values for optK and optL
+    Datum* values;
+    int valuesSize = 2;
+    values = palloc(sizeof(Datum) * valuesSize);
+    values[0] = optK;
+    values[1] = optL;
+
+    ArrayType* result_array;
+
+    result_array = construct_array(values, valuesSize, 20, valsTypeWidth, valsTypeByValue, valsTypeAlignmentCode);
 
     PG_RETURN_ARRAYTYPE_P(result_array);
 }

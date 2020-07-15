@@ -30,3 +30,5 @@ END;
 $$ LANGUAGE plpgsql;
 
 select insert_sig(128);
+-- delete from public.sig_table;
+select * from public.sig_table;

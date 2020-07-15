@@ -45,11 +45,11 @@ unsigned char * hash_sig(u_int64_t sig[], int sig_len) {
 
 int main() {
   // u_int64_t sig[] = {12335, 212390, 38897123, 412309, 512397};
-  u_int64_t sig[] = {2551217353, 25485753, 1794721449, 275646989};
+  u_int64_t sig[] = {1098775865};
 
-  unsigned char *p = hash_sig(sig, 4);
+  unsigned char *p = hash_sig(sig, 1);
 
-  for (int i = 0; i < 16; i++) {
+  for (int i = 0; i < 4; i++) {
       printf("%u ", *(p + i));
    }
 
