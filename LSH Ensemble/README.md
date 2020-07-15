@@ -12,21 +12,31 @@
 
 In addition to the indexing the query table which is similar to what we have done above, there are two additional tasks we have to complete: 1) compute the optimal `k` (the number of hash functions) and `l` (the number of bands) 2) use the `optK` and `optL` values to loop through each band/ bucket and find signatures that have the same **hashKey** and collect their `key` (each `key` is the unique ID of a domain).
 - We first initialize a table of query domain as seen in the following table. The approach for querying a single domain also works for multiple query domains because we can just consider each domain separately. For simplicity, I just created a single domain as an illustration here.
+
 ![query_raw_table](./query/query_raw_table.png)
+
 - Then, we follow the same techniques of minHashing and grouping by band index to construct `public.sig_query_table` and `public.hash_query_table`. Source code can be found in `query/sig_query_table.sql` and `query/hash_query_table.sql` respectively.
 
 This is the signature matrix for the query table
+
 ![sig_query_table](./query/sig_query_table.png)
 
 This is the hash matrix for the query table
+
 ![hash_query_table](./query/hash_query_table.png)
+
 - The only difference here is that we introduce `optK` when constructing the hash table (instead of using the regular `k`). To do this, we first check whether we have `optK` for a given set of parameters in `public.optimalkl_table`. If not, we calculate it upfront and later insert it into `public.optimalkl_table` for future re-use. Otherwise, we simply take it from the table. The source code for calculating `optK` and `optL` can be found in `probability.c`
+
 ![optimalkl_table](./query/optimalkl_table.png)
+
 - With everything prepared, we can now do our actual querying. The source code is in `query/query.sql`. We first join `public.hash_query_table` and `public.hash_table` on `bandIdx`. Column `qd` refers to the query domain and the other columns come from the corpus of tables that we intend to search over. We just go through the number of rows specified by `optL` and check if `qd` is contained by any of the `hashKey` of domain *A*, *B*, *C* or *D*. The length of arrays in `qd` is different from the arrays in other columns, so here, we only use the first `prefixSize` elements in the arrays from domain *A*, *B*, *C* or *D* (i.e. we would only use `ls[:prefixSize]` for arrays from these domains if the array is called `ls`). We will append the `key` of the domain to the return set if the above condition is matched. Using these `key`, we can retrieve the joinable domains.
+
 ![query_join](./query/query_join.png)
 
 **Partition**
+
 ![table_structure](./table_structure.png)
+
 This is a typical structure of tables we will need for using LSH Ensemble:
 - `df0` is the table we intend of search over
 - `sig_table` is the signature matrix derived from `df0`
